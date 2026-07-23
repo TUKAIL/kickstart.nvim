@@ -99,7 +99,7 @@ do
   vim.g.maplocalleader = ' '
 
   -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = false
+  vim.g.have_nerd_font = true
 
   -- [[ Setting options ]]
   --  See `:help vim.o`
@@ -209,7 +209,20 @@ do
     },
   }
 
-  vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+  vim.keymap.set('n', '<leader>Q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
+  vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = 'Write file' })
+  vim.keymap.set('n', '<leader>x', '<cmd>bd<CR>', { desc = 'Close buffer' })
+  vim.keymap.set('n', '<leader>q', '<cmd>q<CR>', { desc = 'Quit window' })
+  vim.keymap.set('n', '<leader>;', function()
+    vim.cmd 'normal! A;'
+  end, { desc = 'Append semicolon to end of line' })
+
+  -- vim.keymap.set('i', 'kj', '<Esc>', { desc = 'Exit insert mode with kj' })
+
+   -- vim.keymap.set('n', '<leader>;', function()
+   --  vim.api.nvim_feedkeys(vim.keycode('A;<CR>'), 'n', false)
+   -- end, { desc = 'Append semicolon and open a new line' })
+
 
   -- Exit terminal mode in the builtin terminal with a shortcut that is a bit easier
   -- for people to discover. Otherwise, you normally need to press <C-\><C-n>, which
@@ -251,6 +264,25 @@ do
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
     callback = function() vim.hl.on_yank() end,
   })
+
+  vim.keymap.set('n', '<leader>cc', function()
+    local file = vim.fn.expand '%'
+    local output = vim.fn.expand '%:r'
+    vim.cmd('split | terminal gcc -Wall -Wextra -std=c2x ' .. vim.fn.fnameescape(file) .. ' -o ' .. vim.fn.fnameescape(output))
+  end, { desc = '[C]ompile current C file' })
+
+  vim.keymap.set('n', '<leader>cr', function()
+    local output = vim.fn.expand '%:r'
+    vim.cmd('split | terminal ' .. vim.fn.fnameescape('./' .. output))
+  end, { desc = '[C] [R]un current binary' })
+
+  vim.keymap.set('n', '<leader>rc', function() vim.cmd 'split | terminal cargo build' end, { desc = '[R]ust cargo [C]build' })
+
+  vim.keymap.set('n', '<leader>rr', function() vim.cmd 'split | terminal cargo run' end, { desc = '[R]ust cargo [R]un' })
+
+  vim.api.nvim_create_user_command('Tsplit', function(opts)
+    vim.cmd('split | terminal ' .. opts.args)
+  end, { nargs = '+' })
 end
 
 -- ============================================================
@@ -409,6 +441,11 @@ do
     -- Used for backwards compatibility with plugins that require `nvim-web-devicons` (e.g. telescope.nvim)
     MiniIcons.mock_nvim_web_devicons()
   end
+
+  -- better escape
+  vim.pack.add { gh 'max397574/better-escape.nvim' }
+  require('better_escape').setup()
+
 
   -- Better Around/Inside textobjects
   --
@@ -692,10 +729,10 @@ do
   --  See `:help lsp-config` for information about keys and how to configure
   ---@type table<string, vim.lsp.Config>
   local servers = {
-    -- clangd = {},
+    clangd = {},
+    rust_analyzer = {},
     -- gopls = {},
     -- pyright = {},
-    -- rust_analyzer = {},
     --
     -- Some languages (like typescript) have entire language plugins that can be useful:
     --    https://github.com/pmizio/typescript-tools.nvim
@@ -759,7 +796,7 @@ do
   -- You can press `g?` for help in this menu.
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
-    -- You can add other tools here that you want Mason to install
+    'clang-format',
   })
 
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -780,10 +817,10 @@ do
   require('conform').setup {
     notify_on_error = false,
     format_on_save = function(bufnr)
-      -- You can specify filetypes to autoformat on save here:
       local enabled_filetypes = {
-        -- lua = true,
-        -- python = true,
+        c = true,
+        cpp = true,
+        rust = true,
       }
       if enabled_filetypes[vim.bo[bufnr].filetype] then
         return { timeout_ms = 500 }
@@ -796,12 +833,9 @@ do
     },
     -- You can also specify external formatters in here.
     formatters_by_ft = {
-      -- rust = { 'rustfmt' },
-      -- Conform can also run multiple formatters sequentially
-      -- python = { "isort", "black" },
-      --
-      -- You can use 'stop_after_first' to run the first available formatter from the list
-      -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      c = { 'clang-format' },
+      cpp = { 'clang-format' },
+      rust = { 'rustfmt' },
     },
   }
 
@@ -865,9 +899,10 @@ do
     },
 
     completion = {
+      menu = { auto_show = true },
       -- By default, you may press `<c-space>` to show the documentation.
       -- Optionally, set `auto_show = true` to show the documentation after a delay.
-      documentation = { auto_show = false, auto_show_delay_ms = 500 },
+      documentation = { auto_show = true, auto_show_delay_ms = 500 },
     },
 
     sources = {
@@ -904,7 +939,7 @@ do
   vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
-  local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
+  local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'rust', 'vim', 'vimdoc' }
   require('nvim-treesitter').install(parsers)
 
   ---@param buf integer
@@ -960,7 +995,12 @@ do
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
   -- init.lua. If you want these files, they are in the repository, so you can just download them and
   -- place them in the correct locations.
+  vim.o.expandtab = true -- 用空格代替 tab
+  vim.o.shiftwidth = 2 -- 缩进 2 个空格
+  vim.o.tabstop = 2 -- tab 显示宽度 2
+  vim.o.softtabstop = 2 -- 按 tab 时等于 2 空格
 
+  vim.g.netrw_browsex_viewer = 'wslview'
   -- NOTE: Next step on your Neovim journey: Add/Configure additional plugins for Kickstart
   --
   --  Here are some example plugins that I've included in the Kickstart repository.
@@ -969,8 +1009,8 @@ do
   -- require 'kickstart.plugins.debug'
   -- require 'kickstart.plugins.indent_line'
   -- require 'kickstart.plugins.lint'
-  -- require 'kickstart.plugins.autopairs'
-  -- require 'kickstart.plugins.neo-tree'
+  require 'kickstart.plugins.autopairs'
+  require 'kickstart.plugins.neo-tree'
   -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`

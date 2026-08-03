@@ -213,6 +213,8 @@ do
   vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = 'Write file' })
   vim.keymap.set('n', '<leader>x', '<cmd>bd<CR>', { desc = 'Close buffer' })
   vim.keymap.set('n', '<leader>q', '<cmd>q<CR>', { desc = 'Quit window' })
+  vim.keymap.set('n', '<Tab>', '<cmd>bnext<CR>', { desc = 'Next buffer' })
+  vim.keymap.set('n', '<S-Tab>', '<cmd>bprevious<CR>', { desc = 'Previous buffer' })
   vim.keymap.set('n', '<leader>;', function()
     vim.cmd 'normal! A;'
   end, { desc = 'Append semicolon to end of line' })
@@ -444,7 +446,21 @@ do
 
   -- better escape
   vim.pack.add { gh 'max397574/better-escape.nvim' }
-  require('better_escape').setup()
+  require('better_escape').setup {
+    timeout = vim.o.timeoutlen,
+    default_mappings = false,
+    mappings = {
+      i = {
+        j = {
+          k = '<Esc>',
+        },
+        k = {
+          j = '<Right>',
+          l = '<Esc>$a',
+        },
+      },
+    },
+  }
 
 
   -- Better Around/Inside textobjects

@@ -1,0 +1,11 @@
+创建虚拟环境
+python3 -m venv ~/venv-mitm
+进入虚拟环境
+source ~/venv-mitm/bin/activate
+
+你会看到：
+
+(venv-mitm)
+
+删除
+rm -rf ~/venv-mitm

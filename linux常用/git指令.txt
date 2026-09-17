@@ -1,0 +1,27 @@
+git status                 # 查看状态
+git add .                  # 添加修改
+git commit -m "message"    # 提交
+git pull                   # 拉取最新代码
+git push                   # 推送代码
+git switch 分支名           # 切换分支
+git switch -c 新分支        # 创建并切换
+git merge 分支名            # 合并分支
+git log --oneline           # 查看历史
+git diff                    # 查看修改
+
+git config --global user.name "你的名字"
+git config --global user.email "you@example.com"
+
+永久保存缓存 git config --global credential.helper store
+
+Git 查看某个文件的历史 commit 记录 “git log -- 文件名”
+注意 -- 很重要，它告诉 Git 后面的参数是文件路径，不是分支名。
+
+git log -p --follow -- boot/bootsect.s
+-p: 简洁版 --follow: 可以持续追踪重命名以前的
+
+git config --global user.name "TUKAIL"
+
+git config --global user.email "romrim9527@gmail.com"
+
+git remote add origin https://github.com/TUKAIL/my_linux_kernel

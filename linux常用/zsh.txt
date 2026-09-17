@@ -1,0 +1,11 @@
+回到上一个路径：cd -
+Ctrl + U：删除从光标到行首（最常用）。
+
+mv 原文件名 新文件名
+
+cp a.txt b.txt          # 复制文件
+cp a.txt dir/           # 复制到目录
+cp -r dir1 dir2         # 复制整个目录
+mv a.txt b.txt          # 改名（或移动）
+
+fd搜索

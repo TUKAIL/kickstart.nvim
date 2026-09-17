@@ -1,0 +1,80 @@
+ 报错原因可以总结成两层：
+
+ 1. 根因：WSL2 上 io_uring 特性兼容性不足
+     - vortex-bittorrent 在启动时会这样创建 ring：
+         - setup_single_issuer()
+         - setup_clamp()
+         - setup_cqsize(...)
+         - setup_defer_taskrun()
+         - setup_coop_taskrun()
+     - 在你的环境里：
+         - 内核：5.15.167.4-microsoft-standard-WSL2
+     - 这里 .build(...) 返回了：
+         - Os { code: 22, kind: InvalidInput, message: "Invalid argument" }
+     - 这通常表示：当前 WSL2 内核/实现不接受其中某些 io_uring setup flags 组合，不是 magnet 命令写错。
+
+ 2. 次要问题：项目对错误处理不够稳
+     - torrent.rs:157 对 .build(...) 直接 unwrap()，导致一旦 io_uring 初始化失败就立刻崩溃。
+     - 你前面看到的：
+         - Command channel to not be full: SendError { .. }
+     - 更像是主线程/子线程在异常退出后的连带 panic，不一定是最初根因。
+     - 真正的首个关键错误是 io_uring 初始化失败。
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ ### 你要改源码的话，建议方向
+
+ 优先做这件事：
+
+ - 给 io_uring 初始化加 降级 fallback
+ - 不要直接 unwrap()
+
+ 建议策略：
+
+ 1. 先尝试当前“高性能配置”
+ 2. 如果失败，再尝试“兼容配置”
+     - 只保留最基础的：
+         - setup_clamp()
+         - setup_cqsize(...)
+ 3. 如果还失败，再返回明确错误，而不是 panic
+
+ 也就是说，把：
+
+ - setup_single_issuer
+ - setup_defer_taskrun
+ - setup_coop_taskrun
+
+ 这些比较新的 flag，作为“可选优化”而不是“强依赖”。
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ ### 你接下来可以怎么做
+
+ 1. clone 原项目到新目录
+ 2. 在新目录里修改：
+     - bittorrent/src/torrent.rs
+ 3. 把 IoUring::builder()...build(...).unwrap() 改成：
+     - 先 try 高级配置
+     - 失败后 fallback 到基础配置
+     - 最后 map_err(...) 返回错误
+
+ ────────────────────────────────────────────────────────────────────────────────
+
+ ### 我对这个问题的判断结论
+
+ 一句话总结：
+
+ │ vortex-cli 在 WSL2 上崩溃的根因不是命令参数，而是 vortex-bittorrent 使用了当前 WSL2 内核不完全支持的 io_uring
+ │ setup flags，并且代码用 unwrap() 直接把初始化失败变成了崩溃。
+
+ 如果你愿意，下一条我可以直接帮你：
+ - 先 git clone 到一个新工作目录
+ - 然后给你写出一个最小兼容补丁方案。
+ 
+ 
+ CSAPP：
+
+第6章 Memory hierarchy
+第8章 Exceptional control flow
+第9章 Virtual memory
+第12章 Network programming

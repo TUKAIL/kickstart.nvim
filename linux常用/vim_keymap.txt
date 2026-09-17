@@ -1,0 +1,106 @@
+从“下一行开始进入编辑”的快捷键：o               在上一行插入：O
+
+
+跳转：
+0 跳到行首（第 1 列） ^ 跳到行首第一个非空字符  $ 跳到行尾最后一个字符
+
+ - H — top of screen
+ - M — middle of screen
+ - L — bottom of screen
+
+
+删除：
+ggdG删除全文
+de删一个单词，x 删除光标所在的字符，cl删除当前字符并 直接进入插入模式
+
+粘贴和复制：
+dd剪切一行
+yy p 复制一行然后粘贴在下一行
+
+
+智能提示
+- Ctrl + n：选下一个
+ - Ctrl + p：选上一个
+ - Ctrl + y：确认当前候选
+ - Ctrl + e：关闭补全
+ - Ctrl + Space：打开补全菜单
+ - ]d：查看浮窗
+
+c语言相关：
+
+- `grd`：跳转到定义
+- `grr`：查看引用
+- `grD`：跳转到声明
+- `gri`：跳转到实现
+- `grt`：跳转到类型定义
+- `grn`：重命名符号
+- `gra`：代码操作（修复建议等）
+- `<leader>q`：打开诊断列表
+
+常用命令：
+split | terminal nvim 文件
+
+水平 split
+:split filename
+or shorthand:
+:sp filename
+垂直 split
+:vsplit filename
+
+Ctrl-w h/j/k/l 换文件 split left/down/up/right
+
+
+`. (backtick + dot) — jumps to the exact position of your last change (cursor lands on the exact column).
+`.
+'.  (single-quote + dot) — jumps to the line of your last change (cursor lands on first non-blank character of that line).
+'.
+
+刷新：
+:e!
+
+
+ - <leader>sf：搜索文件
+ - <leader>sg：全文搜索
+ - <leader><leader>：切换已打开 buffer
+ - <leader>sn：搜索 nvim 配置文件
+
+:bd 关闭当前buffer
+
+Ctrl + 6 返回上一个buffer
+
+当前行上方插入新行：O
+
+   vim.keymap.set('n', '<leader>w', '<cmd>w<CR>', { desc = 'Write file' })
+   vim.keymap.set('n', '<leader>x', '<cmd>bd<CR>', { desc = 'Close buffer' })
+   vim.keymap.set('n', '<leader>Q', '<cmd>q<CR>', { desc = 'Quit window' })
+
+cc 编辑当前行
+
+"_dd → 删除（不污染）
+"0p → 可靠粘贴复制内容
+
+rust：K 查看类型 再按一次进入窗口
+gra添加类型
+
+A 跳转到最后一行并且编辑
+I 跳转第一行开头编辑
+
+单行注释普通模式：gcc
+V选中多行：gc
+
+tab S-tab 更换buffer
+
+收起一个方法：
+光标放在括号上 zf%
+zo展开
+
+:DiffClipboard 跟剪切板对照 :diffoff! 退出
+
+ctrl-q 块选择，Ipub 就批量添加了pub
+
+3dd删除3行，3x删除后面三个字符
+
+<leader>tm 开关markdown
+
+f{ 
+% 跳转大括号

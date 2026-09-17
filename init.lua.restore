@@ -299,12 +299,7 @@ do
     vim.cmd 'diffthis'
   end, { desc = 'Diff current buffer against system clipboard' })
 
-  vim.api.nvim_create_user_command('DiffClipboardOff', function()
-    vim.cmd 'windo diffoff!'
-  end, { desc = 'Turn off clipboard diff windows' })
-
   vim.keymap.set('n', '<leader>dc', '<cmd>DiffClipboard<CR>', { desc = '[D]iff with [C]lipboard' })
-  vim.keymap.set('n', '<leader>do', '<cmd>DiffClipboardOff<CR>', { desc = '[D]iff [O]ff' })
 end
 
 -- ============================================================
@@ -450,30 +445,12 @@ do
   vim.cmd.colorscheme 'tokyonight-night'
 
   -- Highlight todo, notes, etc in comments
-  vim.pack.add { gh 'folke/todo-comments.nvim' }
-  require('todo-comments').setup { signs = false }
-
-  -- [[ mini.nvim ]]
-  --  A collection of various small independent plugins/modules
-  vim.pack.add { gh 'nvim-mini/mini.nvim' }
-
-  -- If a nerd font is available, load the icons module for pretty icons in various plugins.
-  if vim.g.have_nerd_font then
-    require('mini.icons').setup()
-    -- Used for backwards compatibility with plugins that require `nvim-web-devicons` (e.g. telescope.nvim)
-    MiniIcons.mock_nvim_web_devicons()
-  end
-
-  -- better escape
   vim.pack.add { gh 'max397574/better-escape.nvim' }
   require('better_escape').setup {
     timeout = vim.o.timeoutlen,
-    default_mappings = false,
+    default_mappings = true,
     mappings = {
       i = {
-        j = {
-          k = '<Esc>',
-        },
         k = {
           j = '<Right>',
           l = '<Esc>$a',
@@ -482,14 +459,6 @@ do
     },
   }
 
-  -- Better markdown rendering for reading and writing.
-  vim.pack.add { gh 'MeanderingProgrammer/render-markdown.nvim' }
-  require('render-markdown').setup {
-    file_types = { 'markdown', 'Avante' },
-  }
-  vim.keymap.set('n', '<leader>tm', function()
-    require('render-markdown').toggle()
-  end, { desc = '[T]oggle [M]arkdown rendering' })
 
   -- Better Around/Inside textobjects
   --
@@ -561,6 +530,24 @@ do
 
   ---@type (string|vim.pack.Spec)[]
   local telescope_plugins = {
+    gh 'nvim-lua/plenary.nvim',
+    gh 'nvim-telescope/telescope.nvim',
+    gh 'nvim-telescope/telescope-ui-select.nvim',
+  }
+  if vim.fn.executable 'make' == 1 then table.insert(telescope_plugins, gh 'nvim-telescope/telescope-fzf-native.nvim') end
+
+  -- NOTE: You can install multiple plugins at once
+  vim.pack.add(telescope_plugins)
+
+  -- See `:help telescope` and `:help telescope.setup()`
+  require('telescope').setup {
+    -- You can put your default mappings / updates / etc. in here
+    --  All the info you're looking for is in `:help telescope.setup()`
+    --
+    -- defaults = {
+    --   mappings = {
+    --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+    --   },
     gh 'nvim-lua/plenary.nvim',
     gh 'nvim-telescope/telescope.nvim',
     gh 'nvim-telescope/telescope-ui-select.nvim',
@@ -997,24 +984,6 @@ do
     -- Enable treesitter based folds
     -- For more info on folds see `:help folds`
     -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
-    -- vim.wo.foldmethod = 'expr'
-
-    -- Check if treesitter indentation is available for this language, and if so enable it
-    -- in case there is no indent query, the indentexpr will fallback to the vim's built in one
-    local has_indent_query = vim.treesitter.query.get(language, 'indents') ~= nil
-
-    -- Enable treesitter based indentation
-    if has_indent_query then vim.bo.indentexpr = "v:lua.require'nvim-treesitter'.indentexpr()" end
-  end
-
-  local available_parsers = require('nvim-treesitter').get_available()
-  vim.api.nvim_create_autocmd('FileType', {
-    callback = function(args)
-      local buf, filetype = args.buf, args.match
-
-      local language = vim.treesitter.language.get_lang(filetype)
-      if not language then return end
-
       local installed_parsers = require('nvim-treesitter').get_installed 'parsers'
 
       if vim.tbl_contains(installed_parsers, language) then
@@ -1027,7 +996,7 @@ do
         -- Try to enable treesitter features in case the parser exists but is not available from `nvim-treesitter`
         treesitter_try_attach(buf, language)
       end
-    end,
+    end
   })
 end
 

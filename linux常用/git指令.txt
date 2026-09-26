@@ -22,6 +22,6 @@ git log -p --follow -- boot/bootsect.s
 
 git config --global user.name "TUKAIL"
 
-git config --global user.email "romrim9527@gmail.com"
+git config --global user.email "your_email"
 
 git remote add origin https://github.com/TUKAIL/my_linux_kernel
